@@ -1,4 +1,4 @@
-var app = require('http').createServer(handler).listen(8080),
+var app = require('http').createServer(handler).listen(process.env.PORT || 80),
     fs = require('fs'),
     io = require('socket.io').listen(app);
 
