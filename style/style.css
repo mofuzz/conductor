@@ -5,9 +5,16 @@
 }
 
 body{
-  overflow: hidden;
-  margin:0px;
-  background-color:#2A0052;
+  	overflow: hidden;
+  	margin:0px;
+  	background-color:#2A0052;
+	color: #ffffff;
+}
+
+.button{
+	cursor: pointer;
+	padding: 10px;
+	background-color: #999999;
 }
 
 #canvas{

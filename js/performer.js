@@ -1,15 +1,21 @@
+/*
+TODO: 
+-freeze control
+-change scale
+
+*/
+
+
 var socket = io.connect('http://'+window.location.hostname);
 var $fun;
 var touching= false;
+var currPos = [0,0]
 
 $(document).ready(function(){
     
-    // containerNode = document.getElementById('canvas');
-    // myp5 = new p5(s, containerNode);
-    // 
-    $fun = $("#fun");
+  $fun = $("#fun");
     
-   Hammer($fun[0], {
+  Hammer($fun[0], {
       prevent_default: true,
       no_mouseevents: true
     })
@@ -21,6 +27,7 @@ $(document).ready(function(){
       }
     })
     .on('drag', function(event){
+      currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
       audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
       audioController.setArpeggLen(1 +  20 * event.gesture.center.pageX / $(this).width() );
     })
@@ -30,6 +37,7 @@ $(document).ready(function(){
     
 });
 
+// Not sure p5 is the way to go. Might be overkill
 var s = function( sketch ) {
   sketch.setup = function() {
     sketch.colorMode("hsb");
@@ -43,8 +51,14 @@ var s = function( sketch ) {
     } else {
       sketch.background(1,0,1);
     }
+    sketch.color(255, 255, 255);
+    sketch.rect(currPos[0], currPos[1], 55, 55);
   }
 };
+
+containerNode = document.getElementById('canvas');
+myp5 = new p5(s, containerNode);
+
 
 socket.on('connect', function(){
   socket.emit('identify', {data:'performer'});
@@ -53,6 +67,15 @@ socket.on('connect', function(){
 
 socket.on('motion', function(data){
   touching=data.state;
+  console.log(data);
+});
+
+// ============================================
+// =            Control Events                =
+// ============================================
+
+socket.on('control', function(data){
+  audioController[data.methodName](data.value);
   console.log(data);
 });
 
@@ -74,16 +97,30 @@ var AudioController = function(){
   var playing = false;
   var baseScaleDegree = 0;
   var arpeggLen = 4;
+  var currentScale = 0;
+  var scales = [[0,3,5,7,10], [0,4,7,9, 11]];
+  
+  // initialization;
+  context = new AudioContext();
+  latestScheduledNoteTime = context.currentTime;
+  
+  osc = context.createOscillator();
+  osc.type = "square";
+  gain = context.createGain();
+  gain.gain.value = 0;
+  osc.start(0);
+  osc.connect(gain)
+  gain.connect(context.destination);
+  
   
   var midiToFreq = function(midiNote){
     return 440 * Math.pow(2, (midiNote-69)/12);
   }
   
-  var scale = [0,3,5,7,10];
   var scaleDegree = function(degree) {
-    var octave = Math.floor(degree / scale.length);
-    var baseNumber = degree % scale.length;
-    return scale[baseNumber] + 12 * octave;    
+    var octave = Math.floor(degree / scales[currentScale].length);
+    var baseNumber = degree % scales[currentScale].length;
+    return scales[currentScale][baseNumber] + 12 * octave;    
   }
   
   var schedule = function() {
@@ -101,28 +138,28 @@ var AudioController = function(){
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);
   }
   
+
+  
+  
   var self = {
     startSound: function () {
 
-      context = new AudioContext();
-      latestScheduledNoteTime = context.currentTime;
+      if(!playing){
+        schedule();
+        gain.gain.linearRampToValueAtTime(1, context.currentTime + 1 );
+        
+        playing = true;
+      }
       
-      osc = context.createOscillator();
-      osc.type = "square";
-      gain = context.createGain();
-      gain.gain.value = 0.1;
-      osc.start(0);
-      osc.connect(gain)
-      gain.connect(context.destination);
-      
-      schedule();
-      playing = true;
       
     },
     stopSound: function() {
-      gain.gain.value = 0;
+      gain.gain.linearRampToValueAtTime(0, context.currentTime + 1 );
       clearTimeout( nextTimeoutID );
       playing = false;
+    },
+    setVolume: function(vol) {
+        gain.gain.linearRampToValueAtTime(vol, context.currentTime + 1 );
     },
     isPlaying: function() {
       return playing;
@@ -132,12 +169,16 @@ var AudioController = function(){
     },
     setArpeggLen: function(val) {
       arpeggLen = Math.floor(val);
+    },
+    setScale: function(index) {
+      currentScale = index % scales.length;
     }
   };
   return self;
 }
 
 var audioController = AudioController();
+audioController.startSound();
 
 
 

@@ -25,6 +25,25 @@ var setup = function(){
   .on('release', function(event){
     touchDeactivate();
   });
+  
+  var scale = 0;
+
+  Hammer(document.getElementById("nextScale"))
+  .on('release', function(event){
+    socket.emit('control', {methodName: "setScale", value: scale++ });
+  })
+  
+  Hammer(document.getElementById("stop"))
+  .on('release', function(event){
+    socket.emit('control', {methodName: "setVolume", value: 0 });
+  })
+  
+  Hammer(document.getElementById("start"))
+  .on('release', function(event){
+    socket.emit('control', {methodName: "setVolume", value: 1 });
+  })
+  
+  
 }
 
 $(document).ready(function(){
