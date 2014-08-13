@@ -99,6 +99,7 @@ var AudioController = function(){
   var arpeggLen = 4;
   var currentScale = 0;
   var scales = [[0,3,5,7,10], [0,4,7,9, 11]];
+  var lastKeepAlive = Date.now();
   
   // initialization;
   context = new AudioContext();
@@ -136,10 +137,13 @@ var AudioController = function(){
     }
   
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);
+    
+    // kill the sound if keepalive wasn't recieved by the server
+    if(Date.now() - lastKeepAlive > 2000){
+      self.setVolume(0);
+    }
+    
   }
-  
-
-  
   
   var self = {
     startSound: function () {
@@ -172,6 +176,9 @@ var AudioController = function(){
     },
     setScale: function(index) {
       currentScale = index % scales.length;
+    },
+    keepAlive: function(index){
+      lastKeepAlive = Date.now();
     }
   };
   return self;

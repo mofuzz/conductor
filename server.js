@@ -7,7 +7,7 @@ var performerSockets = [];
 var motionEvents = [];
 var emitRate = 200;
 // keep current settings, resend periodically to protect against dropped messages
-var synthSettings = [];
+var synthSettings = [{methodName: "keepAlive"}];
 
 function handler(req, res) {
   if (req.url === "/") {
