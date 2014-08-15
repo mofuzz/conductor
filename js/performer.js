@@ -112,6 +112,7 @@ var AudioController = function(){
   var currentScale = 0;
   var scales = [[0,3,5,7,10], [0,4,7,9, 11]];
   var lastKeepAlive = Date.now();
+  var connectionLost = false;
   
   // initialization;
   context = new AudioContext();
@@ -151,8 +152,10 @@ var AudioController = function(){
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);
     
     // kill the sound if keepalive wasn't recieved by the server
-    if(Date.now() - lastKeepAlive > 2000){
+    if(!connectionLost && Date.now() - lastKeepAlive > 2000){
       self.setVolume(0);
+      alert("ERROR -- connection to server lost");
+      connectionLost = true;
     }
     
   }

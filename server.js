@@ -9,6 +9,7 @@ var emitRate = 200;
 // keep current settings, resend periodically to protect against dropped messages
 var synthSettings = [{methodName: "keepAlive"}];
 
+
 function handler(req, res) {
   if (req.url === "/") {
     fs.readFile(__dirname + '/index.html', function(err, data) {
@@ -38,6 +39,20 @@ io.sockets.on('connection', function(socket) {
 
   // continually broadcase all of the messages that have come in 
   // to make sure all the synths are in the same state
+
+
+  (function() {
+    var scale = 1;
+    function setScale() {
+      scale++;
+
+      socket.broadcast.to('performers').emit('control',  {methodName: "setScale", value: scale});
+      setTimeout(setScale, 1000 * 5);
+    }
+    setScale();
+  })()
+
+
 
   function repeatBroadcastSettings() {
     for (var key in synthSettings) {
