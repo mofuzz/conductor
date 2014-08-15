@@ -1,7 +1,6 @@
 /*
 TODO: 
 -freeze control
--change scale
 
 */
 
@@ -12,8 +11,15 @@ var touching= false;
 var currPos = [0,0]
 
 $(document).ready(function(){
+  
+  document.addEventListener('pagehide',function(){
+    alert("background");
+    audioController.stopSound();
+  }, false);
     
   $fun = $("#fun");
+  
+  $indicator = $("#indicator");
     
   Hammer($fun[0], {
       prevent_default: true,
@@ -28,6 +34,7 @@ $(document).ready(function(){
     })
     .on('drag', function(event){
       currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+      $indicator.css({top: currPos[1], left: currPos[0]})
       audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
       audioController.setArpeggLen(1 +  20 * event.gesture.center.pageX / $(this).width() );
     })
@@ -38,26 +45,26 @@ $(document).ready(function(){
 });
 
 // Not sure p5 is the way to go. Might be overkill
-var s = function( sketch ) {
-  sketch.setup = function() {
-    sketch.colorMode("hsb");
-    sketch.createCanvas(window.innerWidth, window.innerHeight);
-    sketch.background(0,0,1);
-  };
+// var s = function( sketch ) {
+//   sketch.setup = function() {
+//     sketch.colorMode("hsb");
+//     sketch.createCanvas(window.innerWidth, window.innerHeight);
+//     sketch.background(0,0,1);
+//   };
+// 
+//   sketch.draw = function() {
+//     if(touching == 0){
+//       sketch.background(0,0,0);
+//     } else {
+//       sketch.background(1,0,1);
+//     }
+//     sketch.color(255, 255, 255);
+//     sketch.rect(currPos[0], currPos[1], 55, 55);
+//   }
+// };
 
-  sketch.draw = function() {
-    if(touching == 0){
-      sketch.background(0,0,0);
-    } else {
-      sketch.background(1,0,1);
-    }
-    sketch.color(255, 255, 255);
-    sketch.rect(currPos[0], currPos[1], 55, 55);
-  }
-};
-
-containerNode = document.getElementById('canvas');
-myp5 = new p5(s, containerNode);
+// containerNode = document.getElementById('canvas');
+// myp5 = new p5(s, containerNode);
 
 
 socket.on('connect', function(){
@@ -75,8 +82,13 @@ socket.on('motion', function(data){
 // ============================================
 
 socket.on('control', function(data){
-  audioController[data.methodName](data.value);
-  console.log(data);
+  if(data){
+    if(!audioController[data.methodName]){
+      alert(data.methodName)
+    }
+    audioController[data.methodName](data.value);
+    console.log(data);
+  }
 });
 
 
@@ -179,13 +191,17 @@ var AudioController = function(){
     },
     keepAlive: function(index){
       lastKeepAlive = Date.now();
+    },
+    // this probably doesn't belong in audiocontroller, but 
+    // quick and dirty, it works
+    setLock: function(val) {
+      
     }
   };
   return self;
 }
 
 var audioController = AudioController();
-audioController.startSound();
 
 
 

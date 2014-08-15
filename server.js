@@ -40,11 +40,9 @@ io.sockets.on('connection', function(socket) {
   // to make sure all the synths are in the same state
 
   function repeatBroadcastSettings() {
-    console.log("repeat broadcast called");
     for (var key in synthSettings) {
       if (synthSettings.hasOwnProperty(key)) {
         var data = synthSettings[key];
-        console.log("repeat broadcast: " + data.methodName);
         socket.broadcast.to('performers').emit('control', data);
       }
     }
