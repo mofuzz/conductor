@@ -118,14 +118,6 @@ var AudioController = function(){
   context = new AudioContext();
   latestScheduledNoteTime = context.currentTime;
   
-  osc = context.createOscillator();
-  osc.type = "square";
-  gain = context.createGain();
-  gain.gain.value = 0;
-  osc.start(0);
-  osc.connect(gain)
-  gain.connect(context.destination);
-  
   
   var midiToFreq = function(midiNote){
     return 440 * Math.pow(2, (midiNote-69)/12);
@@ -164,6 +156,15 @@ var AudioController = function(){
     startSound: function () {
 
       if(!playing){
+        
+        osc = context.createOscillator();
+        osc.type = "square";
+        gain = context.createGain();
+        gain.gain.value = 0;
+        osc.start(0);
+        osc.connect(gain)
+        gain.connect(context.destination);
+        
         schedule();
         gain.gain.linearRampToValueAtTime(1, context.currentTime + 1 );
         
