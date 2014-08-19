@@ -14,7 +14,8 @@ TODO:
 var socket = io.connect('http://'+window.location.hostname);
 var $fun;
 var touching= false;
-var currPos = [0,0]
+var currPos = [0,0];
+var xMin = 0;
 
 $(document).ready(function(){
   
@@ -43,7 +44,9 @@ $(document).ready(function(){
         currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
         $indicator.css({top: currPos[1], left: currPos[0]})
         audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
-        audioController.setArpeggLen(1 +  20 * event.gesture.center.pageX / $(this).width() );
+        
+        var maxArpeggLen = 20;
+        audioController.setArpeggLen(1 +(xMin * maxArpeggLen) + (1 - xMin) * maxArpeggLen * event.gesture.center.pageX / $(this).width() );
       }
     })
     .on('release', function(event){
@@ -55,6 +58,12 @@ $(document).ready(function(){
       audioController.onSetLocked = function() {
         $("body").css({"background-color": audioController.isLocked() ? "#000000" : origColor})
       }
+      
+      audioController.setXMin = function(val) {
+        
+      }
+      
+      
     }
     
 });
@@ -94,10 +103,10 @@ var AudioController = function(){
   var env;
   var scheduleRate = 100; // times per second
   var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
-  var BPM = 140 + Math.random() * 1;
+  var bpm = 140;
   var nextTimeoutID;
   var latestScheduledNoteTime;
-  var SECS_PER_16TH = (function() { var SECS_PER_MINUTE = 60; var MINUTES_PER_BEAT = 1 / BPM; return MINUTES_PER_BEAT * SECS_PER_MINUTE / 4;})();
+  var secsPer16th = function() { var SECS_PER_MINUTE = 60; var MINUTES_PER_BEAT = 1 / bpm; return MINUTES_PER_BEAT * SECS_PER_MINUTE / 4;}
   var noteCount = 0;
   var playing = false;
   var baseScaleDegree = 0;
@@ -127,16 +136,16 @@ var AudioController = function(){
   var schedule = function() {
     
     var now = context.currentTime;
-    var nextNoteTime =  latestScheduledNoteTime + SECS_PER_16TH;
+    var nextNoteTime =  latestScheduledNoteTime + secsPer16th();
 
     while(latestScheduledNoteTime < now + scheduleAheadTime){
-      console.log("schedule() current scale: " + currentScale);
+      // console.log("schedule() current scale: " + currentScale);
       var freq = midiToFreq( 40 +  scaleDegree(baseScaleDegree + (noteCount++ % arpeggLen)));
       osc.frequency.setValueAtTime( freq , nextNoteTime);
       env.gain.setValueAtTime(1, nextNoteTime);
-      env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + SECS_PER_16TH);
+      env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + secsPer16th());
       latestScheduledNoteTime = nextNoteTime;
-      nextNoteTime += SECS_PER_16TH;
+      nextNoteTime += secsPer16th;
     }
   
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);
@@ -199,6 +208,9 @@ var AudioController = function(){
     },
     keepAlive: function(index){
       lastKeepAlive = Date.now();
+    },
+    setBPM: function(val) {
+      bpm = val;
     },
     // this probably doesn't belong in audiocontroller, but 
     // quick and dirty, it works

@@ -58,15 +58,40 @@ var setup = function(){
     socket.emit('control', {methodName: "setLock", value: lockValue });
   })
   
- $("#volume").change(function() {
+  $("#volume").change(function() {
    gain = $(this).val() / $(this).attr("max");
   socket.emit('control', {methodName: "setVolume", value: gain });
- });
-  
- $("#sustain").change(function() {
+  });
+
+  $("#sustain").change(function() {
    gain = $(this).val() / $(this).attr("max");
   socket.emit('control', {methodName: "setSustain", value: gain });
- });
+  });
+
+ 
+  $("#xMin").change(function() {
+    var xMin = $(this).val() / $(this).attr("max");
+    socket.emit('control', {methodName: "setXMin", value:  xMin });
+    console.log("xMin: " + xMin);
+  });
+ 
+ 
+  $("#xMax").change(function() {
+   var xMax = $(this).val() / $(this).attr("max");
+   socket.emit('control', {methodName: "setXMax", value:  xMax });
+   console.log("xMax: " + xMin);
+  });
+
+ 
+ var baseBPM = 140;
+ var exp = 0;
+  Hammer(document.getElementById("changeTempo"))
+  .on('release', function(event){
+    socket.emit('control', {methodName: "setBPM", value: baseBPM / Math.pow(2, exp++ % 3) });
+  })
+
+
+
 
 }
 
