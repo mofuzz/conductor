@@ -43,7 +43,7 @@ var setup = function(){
   .on('release', function(event){
     socket.emit('control', {methodName: "setVolume", value: 1 * gain });
   })
-  
+
   Hammer(document.getElementById("lock"))
   .on('release', function(event){
     var lockValue, label;
@@ -63,6 +63,11 @@ var setup = function(){
   socket.emit('control', {methodName: "setVolume", value: gain });
  });
   
+ $("#sustain").change(function() {
+   gain = $(this).val() / $(this).attr("max");
+  socket.emit('control', {methodName: "setSustain", value: gain });
+ });
+
 }
 
 $(document).ready(function(){

@@ -1,6 +1,12 @@
 /*
 TODO: 
--freeze control
+- allow conductor to control start note, range (max/min for range, max min for start note)
+- allow conductor to mute a percentage of phones
+- one note feature (just plays the highest note)
+- chord mode (play one note, slow tremelo)
+- bass mode
+- start sound on reconnect
+- 
 
 */
 
@@ -33,39 +39,25 @@ $(document).ready(function(){
       }
     })
     .on('drag', function(event){
-      currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-      $indicator.css({top: currPos[1], left: currPos[0]})
-      audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
-      audioController.setArpeggLen(1 +  20 * event.gesture.center.pageX / $(this).width() );
+      if(!audioController.isLocked()){
+        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+        $indicator.css({top: currPos[1], left: currPos[0]})
+        audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
+        audioController.setArpeggLen(1 +  20 * event.gesture.center.pageX / $(this).width() );
+      }
     })
     .on('release', function(event){
       //touchDeactivate();
     });
     
+    if(audioController){
+      var origColor = $("body").css("background-color")
+      audioController.onSetLocked = function() {
+        $("body").css({"background-color": audioController.isLocked() ? "#000000" : origColor})
+      }
+    }
+    
 });
-
-// Not sure p5 is the way to go. Might be overkill
-// var s = function( sketch ) {
-//   sketch.setup = function() {
-//     sketch.colorMode("hsb");
-//     sketch.createCanvas(window.innerWidth, window.innerHeight);
-//     sketch.background(0,0,1);
-//   };
-// 
-//   sketch.draw = function() {
-//     if(touching == 0){
-//       sketch.background(0,0,0);
-//     } else {
-//       sketch.background(1,0,1);
-//     }
-//     sketch.color(255, 255, 255);
-//     sketch.rect(currPos[0], currPos[1], 55, 55);
-//   }
-// };
-
-// containerNode = document.getElementById('canvas');
-// myp5 = new p5(s, containerNode);
-
 
 socket.on('connect', function(){
   socket.emit('identify', {data:'performer'});
@@ -74,7 +66,7 @@ socket.on('connect', function(){
 
 socket.on('motion', function(data){
   touching=data.state;
-  console.log(data);
+  // console.log(data);
 });
 
 // ============================================
@@ -87,7 +79,7 @@ socket.on('control', function(data){
       alert(data.methodName)
     }
     audioController[data.methodName](data.value);
-    console.log(data);
+    // console.log(data);
   }
 });
 
@@ -99,9 +91,10 @@ var AudioController = function(){
   var context;
   var osc;
   var gain;
+  var env;
   var scheduleRate = 100; // times per second
   var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
-  var BPM = 140;
+  var BPM = 140 + Math.random() * 1;
   var nextTimeoutID;
   var latestScheduledNoteTime;
   var SECS_PER_16TH = (function() { var SECS_PER_MINUTE = 60; var MINUTES_PER_BEAT = 1 / BPM; return MINUTES_PER_BEAT * SECS_PER_MINUTE / 4;})();
@@ -113,6 +106,8 @@ var AudioController = function(){
   var scales = [[0,3,5,7,10], [0,4,7,9, 11]];
   var lastKeepAlive = Date.now();
   var connectionLost = false;
+  var mLocked = false;
+  var mSustain = 1;
   
   // initialization;
   context = new AudioContext();
@@ -135,8 +130,11 @@ var AudioController = function(){
     var nextNoteTime =  latestScheduledNoteTime + SECS_PER_16TH;
 
     while(latestScheduledNoteTime < now + scheduleAheadTime){
+      console.log("schedule() current scale: " + currentScale);
       var freq = midiToFreq( 40 +  scaleDegree(baseScaleDegree + (noteCount++ % arpeggLen)));
       osc.frequency.setValueAtTime( freq , nextNoteTime);
+      env.gain.setValueAtTime(1, nextNoteTime);
+      env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + SECS_PER_16TH);
       latestScheduledNoteTime = nextNoteTime;
       nextNoteTime += SECS_PER_16TH;
     }
@@ -161,8 +159,12 @@ var AudioController = function(){
         osc.type = "square";
         gain = context.createGain();
         gain.gain.value = 0;
+        env = context.createGain();
+        env.gain.value = 1;
         osc.start(0);
-        osc.connect(gain)
+        osc.connect(env)
+        env.connect(gain)
+        
         gain.connect(context.destination);
         
         schedule();
@@ -179,7 +181,9 @@ var AudioController = function(){
       playing = false;
     },
     setVolume: function(vol) {
-        gain.gain.linearRampToValueAtTime(vol, context.currentTime + 1 );
+        if(gain && gain.gain){
+          gain.gain.linearRampToValueAtTime(vol, context.currentTime + 1 ); 
+        }
     },
     isPlaying: function() {
       return playing;
@@ -199,7 +203,16 @@ var AudioController = function(){
     // this probably doesn't belong in audiocontroller, but 
     // quick and dirty, it works
     setLock: function(val) {
-      
+      mLocked = val;  
+      if(self.onSetLocked){
+        self.onSetLocked();
+      }
+    },
+    isLocked: function() {
+      return mLocked;
+    },
+    setSustain: function(val) {
+      mSustain = val;
     }
   };
   return self;
