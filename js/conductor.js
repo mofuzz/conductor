@@ -81,6 +81,19 @@ var setup = function(){
    socket.emit('control', {methodName: "setXMax", value:  xMax });
    console.log("xMax: " + xMin);
   });
+  
+  $("#yMin").change(function() {
+    var yMin = $(this).val() / $(this).attr("max");
+    socket.emit('control', {methodName: "setYMin", value:  yMin });
+    console.log("yMin: " + yMin);
+  });
+ 
+  $("#yMax").change(function() {
+   var yMax = $(this).val() / $(this).attr("max");
+   socket.emit('control', {methodName: "setYMax", value:  yMax });
+   console.log("yMax: " + yMax);
+  });
+ 
 
  
  var baseBPM = 140;

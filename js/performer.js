@@ -15,7 +15,11 @@ var socket = io.connect('http://'+window.location.hostname);
 var $fun;
 var touching= false;
 var currPos = [0,0];
+var currPosNormalized = [0,0];
 var xMin = 0;
+var xMax = 1;
+var yMin = 0;
+var yMax = 0;
 
 $(document).ready(function(){
   
@@ -28,7 +32,7 @@ $(document).ready(function(){
   
   $indicator = $("#indicator");
     
-  Hammer($fun[0], {
+  Hammer(document.body, {
       prevent_default: true,
       no_mouseevents: true
     })
@@ -42,11 +46,11 @@ $(document).ready(function(){
     .on('drag', function(event){
       if(!audioController.isLocked()){
         currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-        $indicator.css({top: currPos[1], left: currPos[0]})
-        audioController.setBaseScaleDegree( 20 * event.gesture.center.pageY / $(this).height() );
-        
-        var maxArpeggLen = 20;
-        audioController.setArpeggLen(1 +(xMin * maxArpeggLen) + (1 - xMin) * maxArpeggLen * event.gesture.center.pageX / $(this).width() );
+        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+        eventResponses.clampPosition();
+        eventResponses.positionJoystick();
+        eventResponses.currPosChanged();
+        eventResponses.setArpeggLenScaled();
       }
     })
     .on('release', function(event){
@@ -54,15 +58,31 @@ $(document).ready(function(){
     });
     
     if(audioController){
-      var origColor = $("body").css("background-color")
-      audioController.onSetLocked = function() {
-        $("body").css({"background-color": audioController.isLocked() ? "#000000" : origColor})
-      }
+        var origColor = $("body").css("background-color")
+        audioController.onSetLocked = function() {
+            $("body").css({"background-color": audioController.isLocked() ? "#000000" : origColor})
+        }
       
-      audioController.setXMin = function(val) {
-        
-      }
-      
+        audioController.setXMin = function(val) {
+            xMin = val;
+            eventResponses.boundsChanged();
+        }
+
+        audioController.setXMax = function(val) {
+            xMax = val;
+            eventResponses.boundsChanged();
+        }
+
+        audioController.setYMin = function(val) {
+            yMin = val;
+            eventResponses.boundsChanged();
+        }
+
+        audioController.setYMax = function(val) {
+            yMax = val;
+            eventResponses.boundsChanged();
+        }
+
       
     }
     
@@ -88,13 +108,47 @@ socket.on('control', function(data){
       alert(data.methodName)
     }
     audioController[data.methodName](data.value);
-    // console.log(data);
   }
 });
 
 
-
-
+var eventResponses = {
+    clampPosition: function() {
+        
+        var docWidth = $(document).width();
+        var docHeight = $(document).height();
+        currPos[0] = Math.min(docWidth * xMax, Math.max(docWidth * xMin, currPos[0]) );
+        currPos[1] = Math.min(docHeight * yMax, Math.max(docHeight * yMin, currPos[1]) );
+    },
+    boundsChanged: function(){
+        var docWidth = $(document).width();
+        var docHeight = $(document).height();
+        var left = docWidth * xMin;
+        var right = docWidth * xMax;
+        var width = Math.max(20, right - left);
+        
+        var top = docHeight * yMin;
+        var bottom = docHeight * yMax;
+        var height = bottom - top;
+        
+        $("#bounds").css({left: left, width: width, top: top, height: height});
+        eventResponses.clampPosition();
+        eventResponses.positionJoystick();
+        
+        eventResponses.setArpeggLenScaled();
+        
+    },
+    setArpeggLenScaled: function(){
+        var maxArpeggLen = 20;
+        audioController.setArpeggLen(1 + Math.min(maxArpeggLen * xMax,  Math.max(maxArpeggLen * xMin, maxArpeggLen * currPosNormalized[0]) )  );
+    },
+    positionJoystick: function(){
+        $indicator.css({top: currPos[1], left: currPos[0]});
+    },
+    currPosChanged: function() {
+        audioController.setBaseScaleDegree( 20 * currPos[1] / $(document).height() );
+    }
+}
 
 var AudioController = function(){
   var context;
@@ -145,7 +199,7 @@ var AudioController = function(){
       env.gain.setValueAtTime(1, nextNoteTime);
       env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + secsPer16th());
       latestScheduledNoteTime = nextNoteTime;
-      nextNoteTime += secsPer16th;
+      nextNoteTime += secsPer16th();
     }
   
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);

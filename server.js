@@ -1,6 +1,8 @@
 var app = require('http').createServer(handler).listen(process.env.PORT || 80),
     fs = require('fs'),
     io = require('socket.io').listen(app);
+    
+console.log("process.env.PORT: " + process.env.PORT)
 
 io.set('log level', 1);
 var performerSockets = [];
