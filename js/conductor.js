@@ -100,7 +100,7 @@ var setup = function(){
  var exp = 0;
   Hammer(document.getElementById("changeTempo"))
   .on('release', function(event){
-    socket.emit('control', {methodName: "setBPM", value: baseBPM / Math.pow(2, exp++ % 3) });
+    socket.emit('control', {methodName: "setBPM", value: baseBPM / Math.pow(2, exp++ % 5) });
   })
 
 

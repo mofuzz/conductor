@@ -50,7 +50,6 @@ $(document).ready(function(){
         eventResponses.clampPosition();
         eventResponses.positionJoystick();
         eventResponses.currPosChanged();
-        eventResponses.setArpeggLenScaled();
       }
     })
     .on('release', function(event){
@@ -133,20 +132,16 @@ var eventResponses = {
         
         $("#bounds").css({left: left, width: width, top: top, height: height});
         eventResponses.clampPosition();
+        eventResponses.currPosChanged();
         eventResponses.positionJoystick();
-        
-        eventResponses.setArpeggLenScaled();
-        
-    },
-    setArpeggLenScaled: function(){
-        var maxArpeggLen = 20;
-        audioController.setArpeggLen(1 + Math.min(maxArpeggLen * xMax,  Math.max(maxArpeggLen * xMin, maxArpeggLen * currPosNormalized[0]) )  );
     },
     positionJoystick: function(){
         $indicator.css({top: currPos[1], left: currPos[0]});
     },
     currPosChanged: function() {
         audioController.setBaseScaleDegree( 20 * currPos[1] / $(document).height() );
+        var maxArpeggLen = 20;
+        audioController.setArpeggLen(1 + Math.min(maxArpeggLen * xMax,  Math.max(maxArpeggLen * xMin, maxArpeggLen * currPosNormalized[0]) )  );
     }
 }
 
