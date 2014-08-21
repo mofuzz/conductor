@@ -1,11 +1,14 @@
 /*
 TODO: 
-- allow conductor to control start note, range (max/min for range, max min for start note)
+- start sound on reconnect / don't require reload after server loss
 - allow conductor to mute a percentage of phones
 - one note feature (just plays the highest note)
-- chord mode (play one note, slow tremelo)
+- create alternate URLs
+- create morganpackard.com/choir
+- add "locked indicator"
+
+
 - bass mode
-- start sound on reconnect
 - 
 
 */
@@ -20,6 +23,7 @@ var xMin = 0;
 var xMax = 1;
 var yMin = 0;
 var yMax = 0;
+var INDICATOR_SQUARE_SIZE = 20;
 
 $(document).ready(function(){
   
@@ -62,23 +66,28 @@ $(document).ready(function(){
             $("body").css({"background-color": audioController.isLocked() ? "#000000" : origColor})
         }
       
+      
         audioController.setXMin = function(val) {
             xMin = val;
+            xMax = Math.max(xMin, xMax);
             eventResponses.boundsChanged();
         }
 
         audioController.setXMax = function(val) {
             xMax = val;
+            xMin = Math.min(xMin, xMax);
             eventResponses.boundsChanged();
         }
 
         audioController.setYMin = function(val) {
             yMin = val;
+            yMax = Math.max(yMin, yMax);
             eventResponses.boundsChanged();
         }
 
         audioController.setYMax = function(val) {
             yMax = val;
+            yMin = Math.min(yMin, yMax);
             eventResponses.boundsChanged();
         }
 
@@ -124,11 +133,11 @@ var eventResponses = {
         var docHeight = $(document).height();
         var left = docWidth * xMin;
         var right = docWidth * xMax;
-        var width = Math.max(20, right - left);
+        var width = Math.max(0, right - left) + INDICATOR_SQUARE_SIZE;
         
         var top = docHeight * yMin;
         var bottom = docHeight * yMax;
-        var height = bottom - top;
+        var height = Math.max(0, bottom - top) + INDICATOR_SQUARE_SIZE;
         
         $("#bounds").css({left: left, width: width, top: top, height: height});
         eventResponses.clampPosition();
