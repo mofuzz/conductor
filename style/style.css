@@ -28,3 +28,20 @@ body{
  position:absolute;
  z-index:-1;
 }
+
+#message{
+	background-color: black;
+	position: absolute;
+	left: 20px;
+	top: 20px;
+	opacity: 0.5;
+	display: none;
+}
+
+#message .text{
+	position: absolute;
+	font-family: arial, helvetica, sans-serif;
+	font-weight: bold;
+	font-size: 60pt;
+}
+

@@ -25,6 +25,41 @@ var yMin = 0;
 var yMax = 0;
 var INDICATOR_SQUARE_SIZE = 20;
 
+rand = function(arr) {
+  return arr[ Math.floor( Math.random() * arr.length )];
+}
+
+var message = function(text) {
+  $message = $("#message");
+  $win = $(window);
+  $message.show();
+  $message.css({
+    top: INDICATOR_SQUARE_SIZE, 
+    left:INDICATOR_SQUARE_SIZE, 
+    width: $win.width() - 2 * INDICATOR_SQUARE_SIZE, 
+    height: $win.height() - 2 * INDICATOR_SQUARE_SIZE
+  })
+  
+  $txt = $message.find(".text")
+  
+  $txt
+    .text(text)
+    .css({
+    left: ($win.width() - $txt.width())/2,
+    top: ($win.height() - $txt.height())/2
+  });
+  $("#bounds").hide();
+}
+
+var clearMessage = function() {
+  $("#message").hide();
+  $("#bounds").show();
+}
+
+var isMessageVisible = function() {
+  return $("#message").is(":visible");
+}
+
 $(document).ready(function(){
   
   document.addEventListener('pagehide',function(){
@@ -43,6 +78,7 @@ $(document).ready(function(){
     .on('touch', function(event) {
       if(audioController.isPlaying()){
         //audioController.stopSound();
+        clearMessage();
       }else{
         audioController.startSound();
       }
@@ -57,7 +93,7 @@ $(document).ready(function(){
       }
     })
     .on('release', function(event){
-      //touchDeactivate();
+      $("#message").hide();
     });
     
     if(audioController){
@@ -113,7 +149,7 @@ socket.on('motion', function(data){
 socket.on('control', function(data){
   if(data){
     if(!audioController[data.methodName]){
-      alert(data.methodName)
+      alert("method not found: " + data.methodName)
     }
     audioController[data.methodName](data.value);
   }
@@ -123,14 +159,14 @@ socket.on('control', function(data){
 var eventResponses = {
     clampPosition: function() {
         
-        var docWidth = $(document).width();
-        var docHeight = $(document).height();
+        var docWidth = $(window).width();
+        var docHeight = $(window).height();
         currPos[0] = Math.min(docWidth * xMax, Math.max(docWidth * xMin, currPos[0]) );
         currPos[1] = Math.min(docHeight * yMax, Math.max(docHeight * yMin, currPos[1]) );
     },
     boundsChanged: function(){
-        var docWidth = $(document).width();
-        var docHeight = $(document).height();
+        var docWidth = $(window).width();
+        var docHeight = $(window).height();
         var left = docWidth * xMin;
         var right = docWidth * xMax;
         var width = Math.max(0, right - left) + INDICATOR_SQUARE_SIZE;
@@ -148,7 +184,7 @@ var eventResponses = {
         $indicator.css({top: currPos[1], left: currPos[0]});
     },
     currPosChanged: function() {
-        audioController.setBaseScaleDegree( 20 * currPos[1] / $(document).height() );
+        audioController.setBaseScaleDegree( 20 * currPos[1] / $(window).height() );
         var maxArpeggLen = 20;
         audioController.setArpeggLen(1 + Math.min(maxArpeggLen * xMax,  Math.max(maxArpeggLen * xMin, maxArpeggLen * currPosNormalized[0]) )  );
     }
@@ -209,10 +245,18 @@ var AudioController = function(){
     nextTimeoutID = setTimeout(schedule, 1 / scheduleRate);
     
     // kill the sound if keepalive wasn't recieved by the server
-    if(!connectionLost && Date.now() - lastKeepAlive > 2000){
+    if(Date.now() - lastKeepAlive < 2000){
+        if(connectionLost){
+          clearMessage();
+        }
+        connectionLost = false;
+    }else if(Date.now() - lastKeepAlive > 2000){
       self.setVolume(0);
-      alert("ERROR -- connection to server lost");
       connectionLost = true;
+    }
+    
+    if(connectionLost){
+      message("Can't find server. Quiet.");
     }
     
   }
@@ -274,6 +318,15 @@ var AudioController = function(){
     // quick and dirty, it works
     setLock: function(val) {
       mLocked = val;  
+      if(mLocked){
+        if(!isMessageVisible()){
+          message(rand([
+            "Listen."
+          ]));          
+        }
+      }else{
+        clearMessage();
+      }
       if(self.onSetLocked){
         self.onSetLocked();
       }
