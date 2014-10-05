@@ -103,8 +103,16 @@ $(document).ready(function(){
               "height": squareHeight,
               "position": "absolute",
               "left": x * squareWidth,
-              "top": y * squareHeight
+              "top": y * squareHeight,
+              "data": {
+                origColor: colors[ (x + y % 2) % colors.length]
+              }
             }
+      })
+      .mousedown(function() {
+        $(this).css({
+          "background-color": "#ffffff"
+        })
       });
       $("body").append(div);
     };
@@ -120,37 +128,37 @@ $(document).ready(function(){
   
   $indicator = $("#indicator");
     
-  Hammer(document.body, {
-      prevent_default: true,
-      no_mouseevents: true
-    })
-    .on('touch', function(event) {
-      if(audioController.isPlaying()){
-        //audioController.stopSound();
-        clearMessage();
-      }else{
-        audioController.startSound();
-      }
-      if(!audioController.isLocked()){
-        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
-        eventResponses.clampPosition();
-        eventResponses.positionJoystick();
-        eventResponses.currPosChanged();
-      }
-    })
-    .on('drag', function(event){
-      if(!audioController.isLocked()){
-        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
-        eventResponses.clampPosition();
-        eventResponses.positionJoystick();
-        eventResponses.currPosChanged();
-      }
-    })
-    .on('release', function(event){
-      $("#message").hide();
-    });
+  // Hammer(document.body, {
+  //     prevent_default: true,
+  //     no_mouseevents: true
+  //   })
+  //   .on('touch', function(event) {
+  //     if(audioController.isPlaying()){
+  //       //audioController.stopSound();
+  //       clearMessage();
+  //     }else{
+  //       audioController.startSound();
+  //     }
+  //     if(!audioController.isLocked()){
+  //       currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+  //       currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+  //       eventResponses.clampPosition();
+  //       eventResponses.positionJoystick();
+  //       eventResponses.currPosChanged();
+  //     }
+  //   })
+  //   .on('drag', function(event){
+  //     if(!audioController.isLocked()){
+  //       currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+  //       currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+  //       eventResponses.clampPosition();
+  //       eventResponses.positionJoystick();
+  //       eventResponses.currPosChanged();
+  //     }
+  //   })
+  //   .on('release', function(event){
+  //     $("#message").hide();
+  //   });
     
     if(audioController){
         var origColor = $("body").css("background-color")
