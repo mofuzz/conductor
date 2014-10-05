@@ -24,6 +24,7 @@ var xMax = 1;
 var yMin = 0;
 var yMax = 0;
 var INDICATOR_SQUARE_SIZE = 20;
+var GRID_DIMENSIONS = {x: 20, y:20}
 
 rand = function(arr) {
   return arr[ Math.floor( Math.random() * arr.length )];
@@ -82,6 +83,32 @@ $(document).ready(function(){
             tilt([orientation.x * 50, orientation.y * 50]);
         }, true);
     }
+  
+  // ================================
+  // =          draw UI             =
+  // ================================
+  
+  var squareWidth = $(document).width() / GRID_DIMENSIONS.x;
+  var squareHeight = $(document).height() / GRID_DIMENSIONS.y;
+  
+  var colors = [ "#cccccc", "#dddddd"];
+  
+  for (var x=0; x < GRID_DIMENSIONS.x; x++) {
+    for (var y=0; y < GRID_DIMENSIONS.y; y++) {
+      var div = $('<div/>', {
+          id: 'foo',
+          css: {
+              "background-color": colors[ (x + y % 2) % colors.length],
+              "width": squareWidth,
+              "height": squareHeight,
+              "position": "absolute",
+              "left": x * squareWidth,
+              "top": y * squareHeight
+            }
+      });
+      $("body").append(div);
+    };
+  };
   
   
   document.addEventListener('pagehide',function(){
@@ -178,12 +205,13 @@ socket.on('motion', function(data){
 socket.on('control', function(data){
   if(data){
     if(!audioController[data.methodName]){
-      alert("method not found: " + data.methodName)
+      //alert("method not found: " + data.methodName)
     }
     audioController[data.methodName](data.value);
   }
 });
 
+var audioController = AudioController();
 
 var eventResponses = {
     clampPosition: function() {
@@ -213,15 +241,14 @@ var eventResponses = {
         $indicator.css({top: currPos[1], left: currPos[0]});
     },
     currPosChanged: function() {
-        audioController.setBaseScaleDegree( 20 * currPos[1] / $(window).height() );
-        var maxArpeggLen = 20;
+        audioController.setBaseScaleDegree( GRID_DIMENSIONS.x * currPos[1] / $(window).height() );
+        var maxArpeggLen = GRID_DIMENSIONS.y;
         audioController.setArpeggLen(1 + Math.min(maxArpeggLen * xMax,  Math.max(maxArpeggLen * xMin, maxArpeggLen * currPosNormalized[0]) )  );
     }
 }
 
 
 
-var audioController = AudioController();
 
 
 
