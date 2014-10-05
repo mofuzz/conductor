@@ -11,7 +11,18 @@ var emitRate = 200;
 // keep current settings, resend periodically to protect against dropped messages
 var synthSettings = {keepAlive: {methodName: "keepAlive"}};
 var AUTO_MODE = false;
+var SETTINGS_FILE_LOC = "persistance/settings.json";
 
+// ==============================
+// =       load settings        =
+// ==============================
+
+fs.readFile( SETTINGS_FILE_LOC, function (err, data) {
+  if (err) {
+    throw err; 
+  }
+  synthSettings = JSON.parse(data);
+});
 
 function handler(req, res) {
   if (req.url === "/") {
@@ -35,13 +46,8 @@ function handler(req, res) {
   }
 }
 
-
-
 io.sockets.on('connection', function(socket) {
   console.log('connected on ' + socket.id);
-
-  // continually broadcase all of the messages that have come in 
-  // to make sure all the synths are in the same state
 
   if(AUTO_MODE){
     (function() {
@@ -55,7 +61,9 @@ io.sockets.on('connection', function(socket) {
       setScale();
     })()
   }
-
+  
+  // continually broadcase all of the messages that have come in 
+  // to make sure all the synths are in the same state
   function repeatBroadcastSettings() {
     for (var key in synthSettings) {
       if (synthSettings.hasOwnProperty(key)) {
@@ -83,7 +91,7 @@ io.sockets.on('connection', function(socket) {
     socket.broadcast.to('performers').emit('control', data);
     synthSettings[data.methodName] = data;
     console.log(JSON.stringify(synthSettings));
-    fs.writeFile("persistance/settings.json", JSON.stringify(synthSettings), function(err) {
+    fs.writeFile(SETTINGS_FILE_LOC, JSON.stringify(synthSettings), function(err) {
         if(err) {
             console.log(err);
         } else {
