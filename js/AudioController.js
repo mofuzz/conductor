@@ -21,11 +21,28 @@ var AudioController = function(){
   var connectionLost = false;
   var mLocked = false;
   var mSustain = 1;
+  var steps = [];
+  var minSeqLen = 1;
+
+  var Step = function(scaleDegree) {
+    var self = {};
+    self.scaleDegree = scaleDegree;
+    self.duration = Math.random();
+    return self;
+  };
+
+  var initSteps = function() {
+    steps = [];
+    for (var i=0; i < Math.max(minSeqLen, arpeggLen); i++) {
+      steps.push(Step( scaleDegree( baseScaleDegree + ( i % arpeggLen)  )));
+    };
+  };
   
   // initialization;
   context = new AudioContext();
   latestScheduledNoteTime = context.currentTime;
   latestScheduledNoteDuration = secsPer16th();
+  
   
   var midiToFreq = function(midiNote){
     return 440 * Math.pow(2, (midiNote-69)/12);
@@ -39,14 +56,17 @@ var AudioController = function(){
   
   var schedule = function() {
     
+
     var now = context.currentTime;
     var nextNoteTime =  latestScheduledNoteTime + latestScheduledNoteDuration;
 
     while(latestScheduledNoteTime < now + scheduleAheadTime){
-      var freq = midiToFreq( 40 +  scaleDegree(baseScaleDegree + (noteCount++ % arpeggLen)));
+      var nextStep = steps.shift();
+      steps.push(nextStep);
+      var freq = midiToFreq( 40 +  nextStep.scaleDegree);
       osc.frequency.setValueAtTime( freq , nextNoteTime);
       env.gain.setValueAtTime(1, nextNoteTime);
-      env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + secsPer16th());
+      env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + secsPer16th() * nextStep.duration);
       latestScheduledNoteTime = nextNoteTime;
       latestScheduledNoteDuration = secsPer16th();
       nextNoteTime += secsPer16th();
@@ -75,7 +95,7 @@ var AudioController = function(){
     startSound: function () {
 
       if(!playing){
-        
+        initSteps();
         console.log("startSound")
         osc = context.createOscillator();
         osc.type = "square";
@@ -111,13 +131,28 @@ var AudioController = function(){
       return playing;
     },
     setBaseScaleDegree: function(val){
-      baseScaleDegree = Math.floor(val);
+      var newVal = Math.floor(val);
+      var changed = newVal != baseScaleDegree;
+      baseScaleDegree = newVal;
+      if(changed){
+        initSteps();
+      }
     },
     setArpeggLen: function(val) {
-      arpeggLen = Math.floor(val);
+      var newLen = Math.floor(val);
+      var changed = newLen != arpeggLen;
+      arpeggLen = newLen;
+      if(changed){
+        initSteps();
+      }
     },
     setScale: function(index) {
-      currentScale = index % scales.length;
+      var newScale = index % scales.length
+      var changed = currentScale != newScale;
+      currentScale = newScale;
+      if(changed){
+        initSteps();
+      }
     },
     keepAlive: function(index){
       lastKeepAlive = Date.now();
@@ -150,6 +185,13 @@ var AudioController = function(){
     },
     offsetBpm: function(val){
       bpmOffset = val;
+    },
+    setMinSeqLen: function(val) {
+      var changed = val != minSeqLen;
+      minSeqLen = val;
+      if(changed){
+        initSteps();
+      }
     }
   };
   return self;

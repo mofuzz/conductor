@@ -93,7 +93,12 @@ var setup = function(){
    socket.emit('control', {methodName: "setYMax", value:  yMax });
    console.log("yMax: " + yMax);
   });
- 
+  
+  $("#minSeqLen").change(function() {
+   var minSeqLen = 16 * $(this).val() / $(this).attr("max");
+   socket.emit('control', {methodName: "setMinSeqLen", value:  minSeqLen });
+   console.log("minSeqLen: " + minSeqLen);
+  });
 
  
  var baseBPM = 140;

@@ -104,6 +104,13 @@ $(document).ready(function(){
       }else{
         audioController.startSound();
       }
+      if(!audioController.isLocked()){
+        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+        eventResponses.clampPosition();
+        eventResponses.positionJoystick();
+        eventResponses.currPosChanged();
+      }
     })
     .on('drag', function(event){
       if(!audioController.isLocked()){

@@ -1,7 +1,7 @@
 var app = require('http').createServer(handler).listen(process.env.PORT || 80),
     fs = require('fs'),
     io = require('socket.io').listen(app);
-    
+
 console.log("process.env.PORT: " + process.env.PORT)
 
 io.set('log level', 1);
@@ -9,7 +9,7 @@ var performerSockets = [];
 var motionEvents = [];
 var emitRate = 200;
 // keep current settings, resend periodically to protect against dropped messages
-var synthSettings = [{methodName: "keepAlive"}];
+var synthSettings = {keepAlive: {methodName: "keepAlive"}};
 var AUTO_MODE = false;
 
 
@@ -82,6 +82,14 @@ io.sockets.on('connection', function(socket) {
     data.id = socket.id;
     socket.broadcast.to('performers').emit('control', data);
     synthSettings[data.methodName] = data;
+    console.log(JSON.stringify(synthSettings));
+    fs.writeFile("persistance/settings.json", JSON.stringify(synthSettings), function(err) {
+        if(err) {
+            console.log(err);
+        } else {
+            console.log("The file was saved!");
+        }
+    });
   });
 
 });
