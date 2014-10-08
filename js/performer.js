@@ -96,7 +96,6 @@ $(document).ready(function(){
   for (var x=0; x < GRID_DIMENSIONS.x; x++) {
     for (var y=0; y < GRID_DIMENSIONS.y; y++) {
       var div = $('<div/>', {
-          id: 'foo',
           css: {
               "background-color": colors[ (x + y % 2) % colors.length],
               "width": squareWidth,
@@ -104,12 +103,19 @@ $(document).ready(function(){
               "position": "absolute",
               "left": x * squareWidth,
               "top": y * squareHeight,
-              "data": {
-                origColor: colors[ (x + y % 2) % colors.length]
-              }
+              
             }
       })
+      .data({
+        origColor: colors[ (x + y % 2) % colors.length]
+      })
+      .addClass("gridButton")
       .mousedown(function() {
+        $(".gridButton").each(function(i, btn) {
+          $(btn).css({
+              "background-color": $(btn).data()["origColor"]
+          });
+        });
         $(this).css({
           "background-color": "#ffffff"
         })
@@ -128,37 +134,37 @@ $(document).ready(function(){
   
   $indicator = $("#indicator");
     
-  // Hammer(document.body, {
-  //     prevent_default: true,
-  //     no_mouseevents: true
-  //   })
-  //   .on('touch', function(event) {
-  //     if(audioController.isPlaying()){
-  //       //audioController.stopSound();
-  //       clearMessage();
-  //     }else{
-  //       audioController.startSound();
-  //     }
-  //     if(!audioController.isLocked()){
-  //       currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-  //       currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
-  //       eventResponses.clampPosition();
-  //       eventResponses.positionJoystick();
-  //       eventResponses.currPosChanged();
-  //     }
-  //   })
-  //   .on('drag', function(event){
-  //     if(!audioController.isLocked()){
-  //       currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
-  //       currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
-  //       eventResponses.clampPosition();
-  //       eventResponses.positionJoystick();
-  //       eventResponses.currPosChanged();
-  //     }
-  //   })
-  //   .on('release', function(event){
-  //     $("#message").hide();
-  //   });
+  Hammer(document.body, {
+      prevent_default: true,
+      no_mouseevents: true
+    })
+    .on('touch', function(event) {
+      if(audioController.isPlaying()){
+        //audioController.stopSound();
+        clearMessage();
+      }else{
+        audioController.startSound();
+      }
+      if(!audioController.isLocked()){
+        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+        eventResponses.clampPosition();
+        eventResponses.positionJoystick();
+        eventResponses.currPosChanged();
+      }
+    })
+    .on('drag', function(event){
+      if(!audioController.isLocked()){
+        currPos = [event.gesture.center.pageX, event.gesture.center.pageY];
+        currPosNormalized[0] = event.gesture.center.pageX / $(this).width();
+        eventResponses.clampPosition();
+        eventResponses.positionJoystick();
+        eventResponses.currPosChanged();
+      }
+    })
+    .on('release', function(event){
+      $("#message").hide();
+    });
     
     if(audioController){
         var origColor = $("body").css("background-color")
