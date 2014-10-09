@@ -1,11 +1,12 @@
 var AudioController = function(){
+  var localRandSeed = Math.random();
   var context;
   var osc;
   var gain;
   var env;
   var scheduleRate = 100; // times per second
   var scheduleAheadTime = 0.1;    // How far ahead to schedule audio (sec)
-  var bpm = 140;
+  var bpm = 130;
   var bpmOffset = 0;
   var nextTimeoutID;
   var latestScheduledNoteTime;
@@ -35,7 +36,7 @@ var AudioController = function(){
     steps = [];
     for (var i=0; i < Math.max(minSeqLen, arpeggLen); i++) {
       //steps should be the same each time given same params
-      var seed = String(i + arpeggLen + baseScaleDegree + currentScale + mSustain);
+      var seed = String(i + arpeggLen + baseScaleDegree + currentScale + mSustain + localRandSeed);
       Math.seedrandom( seed );
       steps.push(Step( scaleDegree( baseScaleDegree + ( i % arpeggLen)  )));
     };
