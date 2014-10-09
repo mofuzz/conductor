@@ -34,6 +34,9 @@ var AudioController = function(){
   var initSteps = function() {
     steps = [];
     for (var i=0; i < Math.max(minSeqLen, arpeggLen); i++) {
+      //steps should be the same each time given same params
+      var seed = String(i + arpeggLen + baseScaleDegree + currentScale + mSustain);
+      Math.seedrandom( seed );
       steps.push(Step( scaleDegree( baseScaleDegree + ( i % arpeggLen)  )));
     };
   };
