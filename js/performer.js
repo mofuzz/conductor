@@ -134,8 +134,7 @@ $(document).ready(function(){
   
   for (var x=0; x < GRID_DIMENSIONS.x; x++) {
     for (var y=0; y < GRID_DIMENSIONS.y; y++) {
-      var colorGroupOffset =  0.4 *  Math.floor((y / GRID_DIMENSIONS.y ) * 5 ) / 5;
-      var color = HSVtoRGB(colorGroupOffset + x * 0.5 / GRID_DIMENSIONS.x+  (y % 5 )  / ( GRID_DIMENSIONS.y), 1 - x * 0.5 / GRID_DIMENSIONS.x, 1);
+      var color = HSVtoRGB( (y + x ) / GRID_DIMENSIONS.y, 1 - x * 0.5 / GRID_DIMENSIONS.x, 1 - x * 0.5 / GRID_DIMENSIONS.x);
       var div = $('<div/>', {
           css: {
               "background-color": color,
