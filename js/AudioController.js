@@ -29,6 +29,7 @@ var AudioController = function(){
     var self = {};
     self.scaleDegree = scaleDegree;
     self.duration = Math.random();
+    self.detune = 0.99 + Math.random() * 0.02;
     return self;
   };
 
@@ -67,7 +68,7 @@ var AudioController = function(){
     while(latestScheduledNoteTime < now + scheduleAheadTime){
       var nextStep = steps.shift();
       steps.push(nextStep);
-      var freq = midiToFreq( 40 +  nextStep.scaleDegree);
+      var freq = midiToFreq( 40 +  nextStep.scaleDegree) * nextStep.detune;
       osc.frequency.setValueAtTime( freq , nextNoteTime);
       env.gain.setValueAtTime(1, nextNoteTime);
       env.gain.linearRampToValueAtTime(mSustain, nextNoteTime + secsPer16th() * nextStep.duration);
