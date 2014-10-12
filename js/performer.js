@@ -132,6 +132,7 @@ $(document).ready(function(){
   
   
   
+  
   for (var x=0; x < GRID_DIMENSIONS.x; x++) {
     for (var y=0; y < GRID_DIMENSIONS.y; y++) {
       var color = HSVtoRGB( (y + x ) / GRID_DIMENSIONS.y, 1 - x * 0.5 / GRID_DIMENSIONS.x, 1 - x * 0.5 / GRID_DIMENSIONS.x);
