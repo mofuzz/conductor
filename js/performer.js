@@ -24,7 +24,7 @@ var xMax = 1;
 var yMin = 0;
 var yMax = 0;
 var INDICATOR_SQUARE_SIZE = 20;
-var GRID_DIMENSIONS = {x: 20, y:20}
+var GRID_DIMENSIONS = {x: 10, y:10}
 
 rand = function(arr) {
   return arr[ Math.floor( Math.random() * arr.length )];
