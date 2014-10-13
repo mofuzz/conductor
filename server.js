@@ -26,7 +26,7 @@ fs.readFile( SETTINGS_FILE_LOC, function (err, data) {
 
 function handler(req, res) {
   if (req.url === "/") {
-    fs.readFile(__dirname + '/index.html', function(err, data) {
+    fs.readFile(__dirname + '/performer.html', function(err, data) {
       if (err) {
         res.writeHead(500);
         return res.end('Error loading index.html');
