@@ -171,9 +171,7 @@ var AudioController = function(){
       mLocked = val;  
       if(mLocked){
         if(!isMessageVisible()){
-          message(rand([
-            "Listen."
-          ]));          
+          message("Listen.");          
         }
       }else{
         clearMessage();
