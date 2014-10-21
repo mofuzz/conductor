@@ -23,7 +23,7 @@ module.exports = function(grunt) {
       dist: {
         // The files to concatenate:
         // Notice the wildcard, which is automatically expanded.
-        src: ['src/*.js'],
+        src: ['src/performer/*.js'],
         // The destination file:
         // Notice the angle-bracketed ERB-like templating,
         // which allows you to reference other properties.

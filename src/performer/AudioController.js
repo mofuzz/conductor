@@ -1,4 +1,4 @@
-var AudioController = function(){
+var AudioController = function(message){
   var localRandSeed = Math.random();
   var context;
   var osc;
