@@ -2,24 +2,6 @@ $(document).ready(function(){
 
     var audioController = null;
 
-  // ================================
-  // =          draw GUI             =
-  // ================================
-
-  var popupMessage = PopupMessage();
-
-  var gui = GridGUI();
-  gui.addTouchResponder(function(x,y) {
-    if(!audioController){
-      audioController = AudioController(popupMessage.message);
-      audioController.startSound();
-    }
-    audioController.setBaseScaleDegree(y);
-    audioController.setArpeggLen(x + 1);
-  });
-
-
-
   // ============================================
   // =            Socket communication          =
   // ============================================
@@ -37,6 +19,30 @@ $(document).ready(function(){
         audioController[data.methodName](data.value);
       }
     }
+  });
+
+  // =============================================
+  // =                 NTP Syncing               =
+  // =============================================
+
+  var ntp = NTPClient(socket);
+  ntp.sync();
+  
+  // ================================
+  // =          draw GUI             =
+  // ================================
+
+  var popupMessage = PopupMessage();
+
+  var gui = GridGUI();
+  gui.addTouchResponder(function(x,y) {
+    if(!audioController){
+      audioController = AudioController(popupMessage.message);
+      audioController.startSound();
+    }
+    audioController.setBaseScaleDegree(y);
+    audioController.setArpeggLen(x + 1);
+    ntp.getCurrentServerTime();
   });
 
 

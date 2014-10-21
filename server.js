@@ -81,10 +81,14 @@ io.sockets.on('connection', function(socket) {
     console.log("performer connected on " + socket.id);
   });
 
-  socket.on('motion', function(data) {
-    data.id = socket.id;
-    socket.broadcast.to('performers').emit('motion', data);
-  });
+  socket.on('ntp', function(data) {
+    console.log("ntp: " + data.timeStamp);
+    
+    socket.emit('ntp', {
+      serverRecievedTime:  new Date().getTime(),
+      clientSentTime: data.timeStamp});
+    
+  })
 
   socket.on('control', function(data) {
     data.id = socket.id;
