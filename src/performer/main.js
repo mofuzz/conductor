@@ -37,7 +37,7 @@ $(document).ready(function(){
   var gui = GridGUI();
   gui.addTouchResponder(function(x,y) {
     if(!audioController){
-      audioController = AudioController(popupMessage.message);
+      audioController = AudioController(popupMessage.message, ntp);
       audioController.startSound();
     }
     audioController.setBaseScaleDegree(y);

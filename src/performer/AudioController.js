@@ -1,4 +1,4 @@
-var AudioController = function(message){
+var AudioController = function(message, ntpClient){
   var localRandSeed = Math.random();
   var context;
   var osc;
@@ -24,6 +24,7 @@ var AudioController = function(message){
   var mSustain = 1;
   var steps = [];
   var minSeqLen = 1;
+  var MILLIS_PER_SEC = 1000;
 
   var Step = function(scaleDegree) {
     var self = {};
@@ -64,6 +65,14 @@ var AudioController = function(message){
 
     var now = context.currentTime;
     var nextNoteTime =  latestScheduledNoteTime + latestScheduledNoteDuration;
+    var howLongTillNextNote = nextNoteTime- now;
+    var currentServerTime = ntpClient.getCurrentServerTime();
+    var diffBetweenNowAndServerInMillis =  now * MILLIS_PER_SEC - currentServerTime;
+    var nextNoteTimeInServerTime =   nextNoteTime * MILLIS_PER_SEC - diffBetweenNowAndServerInMillis;
+    var millisPer16th = secsPer16th() * MILLIS_PER_SEC;
+    // do a simple round, for now, expecting that 16ths started at time = 0 (1970)
+    var roundedNextNoteTimeInServerTime = Math.round(nextNoteTimeInServerTime / millisPer16th) * millisPer16th;
+    nextNoteTime = (roundedNextNoteTimeInServerTime + diffBetweenNowAndServerInMillis) / MILLIS_PER_SEC;
 
     while(latestScheduledNoteTime < now + scheduleAheadTime){
       var nextStep = steps.shift();

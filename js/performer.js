@@ -1,6 +1,6 @@
 ;(function( window){ 
  'use strict';
-var AudioController = function(message){
+var AudioController = function(message, ntpClient){
   var localRandSeed = Math.random();
   var context;
   var osc;
@@ -26,6 +26,7 @@ var AudioController = function(message){
   var mSustain = 1;
   var steps = [];
   var minSeqLen = 1;
+  var MILLIS_PER_SEC = 1000;
 
   var Step = function(scaleDegree) {
     var self = {};
@@ -66,6 +67,14 @@ var AudioController = function(message){
 
     var now = context.currentTime;
     var nextNoteTime =  latestScheduledNoteTime + latestScheduledNoteDuration;
+    var howLongTillNextNote = nextNoteTime- now;
+    var currentServerTime = ntpClient.getCurrentServerTime();
+    var diffBetweenNowAndServerInMillis =  now * MILLIS_PER_SEC - currentServerTime;
+    var nextNoteTimeInServerTime =   nextNoteTime * MILLIS_PER_SEC - diffBetweenNowAndServerInMillis;
+    var millisPer16th = secsPer16th() * MILLIS_PER_SEC;
+    // do a simple round, for now, expecting that 16ths started at time = 0 (1970)
+    var roundedNextNoteTimeInServerTime = Math.round(nextNoteTimeInServerTime / millisPer16th) * millisPer16th;
+    nextNoteTime = (roundedNextNoteTimeInServerTime + diffBetweenNowAndServerInMillis) / MILLIS_PER_SEC;
 
     while(latestScheduledNoteTime < now + scheduleAheadTime){
       var nextStep = steps.shift();
@@ -309,12 +318,12 @@ var AudioController = function(message){
       var lastServerTime = lastRoundTrip.serverRecievedTime;
       var now = new Date().getTime();
       currentServerTime =  lastServerTime - avgRoundtripTime / 2 + now - lastClientRecieveTime;
-      console.log("currentServerTime: " + new Date(currentServerTime));
+      // console.log("currentServerTime: " + new Date(currentServerTime));
     }
   }
   
   socket.on('ntp', function(data){
-    console.log('ntp: ' + data);
+    // console.log('ntp: ' + data);
     roundtrips.push($.extend( data, {clientReceivedTime: new Date().getTime()} ));
     if(roundtrips.length < MAX_TRIPS){
       initializeRoundTrip();
@@ -324,7 +333,7 @@ var AudioController = function(message){
     }
   });
   
-  return {
+  var self = {
     sync: function() {
      initializeRoundTrip();
     },
@@ -332,7 +341,9 @@ var AudioController = function(message){
       analyzeRoundTrips();
       return currentServerTime;
     }
-  }
+  };
+  
+  return self;
 };;// ===============================
 // =          Messaging          =
 // ===============================
@@ -417,7 +428,7 @@ var PopupMessage = function() {
   var gui = GridGUI();
   gui.addTouchResponder(function(x,y) {
     if(!audioController){
-      audioController = AudioController(popupMessage.message);
+      audioController = AudioController(popupMessage.message, ntp);
       audioController.startSound();
     }
     audioController.setBaseScaleDegree(y);

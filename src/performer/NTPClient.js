@@ -20,12 +20,12 @@ var NTPClient = function(socket) {
       var lastServerTime = lastRoundTrip.serverRecievedTime;
       var now = new Date().getTime();
       currentServerTime =  lastServerTime - avgRoundtripTime / 2 + now - lastClientRecieveTime;
-      console.log("currentServerTime: " + new Date(currentServerTime));
+      // console.log("currentServerTime: " + new Date(currentServerTime));
     }
   }
   
   socket.on('ntp', function(data){
-    console.log('ntp: ' + data);
+    // console.log('ntp: ' + data);
     roundtrips.push($.extend( data, {clientReceivedTime: new Date().getTime()} ));
     if(roundtrips.length < MAX_TRIPS){
       initializeRoundTrip();
@@ -35,7 +35,7 @@ var NTPClient = function(socket) {
     }
   });
   
-  return {
+  var self = {
     sync: function() {
      initializeRoundTrip();
     },
@@ -43,5 +43,7 @@ var NTPClient = function(socket) {
       analyzeRoundTrips();
       return currentServerTime;
     }
-  }
+  };
+  
+  return self;
 };
