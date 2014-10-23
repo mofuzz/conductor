@@ -1,4 +1,4 @@
-var AudioController = function(message, ntpClient){
+var AudioController = function(popupMessage, ntpClient){
   var localRandSeed = Math.random();
   var context;
   var osc;
@@ -91,7 +91,7 @@ var AudioController = function(message, ntpClient){
     // kill the sound if keepalive wasn't recieved by the server
     if(Date.now() - lastKeepAlive < 2000){
         if(connectionLost){
-          clearMessage();
+          popupMessage.clearMessage();
         }
         connectionLost = false;
     }else if(Date.now() - lastKeepAlive > 10000){
@@ -100,7 +100,7 @@ var AudioController = function(message, ntpClient){
     }
     
     if(connectionLost){
-      message("Can't find server. Quiet.");
+      popupMessage.message("Can't find server. Quiet.");
     }
     
   }
@@ -173,24 +173,6 @@ var AudioController = function(message, ntpClient){
     },
     setBPM: function(val) {
       bpm = val;
-    },
-    // this probably doesn't belong in audiocontroller, but 
-    // quick and dirty, it works
-    setLock: function(val) {
-      mLocked = val;  
-      if(mLocked){
-        if(!isMessageVisible()){
-          message("Listen.");          
-        }
-      }else{
-        clearMessage();
-      }
-      if(self.onSetLocked){
-        self.onSetLocked();
-      }
-    },
-    isLocked: function() {
-      return mLocked;
     },
     setSustain: function(val) {
       mSustain = val;

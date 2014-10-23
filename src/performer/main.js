@@ -14,10 +14,8 @@ $(document).ready(function(){
   });
 
   socket.on('control', function(data){
-    if(data && audioController){
-      if(audioController[data.methodName]){
-        audioController[data.methodName](data.value);
-      }
+    if(data && audioController && audioController[data.methodName]){
+      audioController[data.methodName](data.value);
     }
   });
 
@@ -37,7 +35,7 @@ $(document).ready(function(){
   var gui = GridGUI();
   gui.addTouchResponder(function(x,y) {
     if(!audioController){
-      audioController = AudioController(popupMessage.message, ntp);
+      audioController = AudioController(popupMessage, ntp);
       audioController.startSound();
     }
     audioController.setBaseScaleDegree(y);
