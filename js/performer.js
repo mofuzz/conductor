@@ -433,13 +433,13 @@ var PopupMessage = function() {
   var ntp = NTPClient(socket);
   ntp.sync();
   
-  var displayLatency = function() {
-    popupMessage.message("lowest latency to server in ms: " + ntp.getBestRoundtripLatency());
-    setTimeout(function() {
-      displayLatency();
-    }, 1000);
-  }
-  displayLatency();
+  // var displayLatency = function() {
+  //   popupMessage.message("lowest latency to server in ms: " + ntp.getBestRoundtripLatency());
+  //   setTimeout(function() {
+  //     displayLatency();
+  //   }, 1000);
+  // }
+  // displayLatency();
 
   // ========================================================
   // =             Physical Event Handlers                  =
