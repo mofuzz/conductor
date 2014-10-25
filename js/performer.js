@@ -280,48 +280,63 @@ var AudioController = function(popupMessage, ntpClient){
   
 };var NTPClient = function(socket) {
   
-  var roundtrips = [], MAX_TRIPS = 1000, currentServerTime = 0;
+  var RoundTrip = function(serverResponse) {
+    
+    var clientSentTime = serverResponse.clientSentTime;
+    var serverRecievedTime = serverResponse.serverRecievedTime;
+    var clientReceivedTime = new Date().getTime();
+    
+    
+    var self = {
+      // how far ahead is the server of the client
+      getTimeOffset: function(){
+        return serverRecievedTime - (clientSentTime + self.getCommunicationLatency())
+      },
+      // how long did it take for a message to get from client to server
+      getCommunicationLatency: function() {
+        return (clientReceivedTime - clientSentTime) / 2;
+      }
+    };
+    
+    console.log("new RoundTrip. latency is: " + self.getCommunicationLatency() + "offset is: " + self.getTimeOffset());
+    
+    return self;
+  }
   
-  var initializeRoundTrip = function() {
+  var roundtrips = [], MAX_TRIPS = 1000, currentServerTime = 0, fastestRoundTrip;
+  
+  var initiateRoundTrip = function() {
      socket.emit('ntp', {timeStamp: new Date().getTime() });
   }
   
   var analyzeRoundTrips = function(){
-    if(roundtrips.length > 0){
-      var totalRoundTripTime = 0;
-      var totalServerTime = 0;
-      $.each(roundtrips, function(i, trip) {
-        totalServerTime += trip.serverRecievedTime;
-        totalRoundTripTime += trip.clientReceivedTime - trip.clientSentTime;
-      })
-      var avgRoundtripTime = totalRoundTripTime / roundtrips.length;
-      var lastRoundTrip = roundtrips[roundtrips.length - 1]
-      var lastClientRecieveTime = lastRoundTrip.clientReceivedTime;
-      var lastServerTime = lastRoundTrip.serverRecievedTime;
-      var now = new Date().getTime();
-      currentServerTime =  lastServerTime - avgRoundtripTime / 2 + now - lastClientRecieveTime;
-      // console.log("currentServerTime: " + new Date(currentServerTime));
+    if(!fastestRoundTrip && roundtrips.length){
+      fastestRoundTrip = roundtrips[0];
     }
+    $.each(roundtrips, function(i, trip) {
+      if(trip.getCommunicationLatency < fastestRoundTrip.getCommunicationLatency){
+        fastestRoundTrip = trip;
+      }
+    })
   }
   
   socket.on('ntp', function(data){
-    // console.log('ntp: ' + data);
-    roundtrips.push($.extend( data, {clientReceivedTime: new Date().getTime()} ));
+    roundtrips.push(RoundTrip(data));
     if(roundtrips.length < MAX_TRIPS){
-      initializeRoundTrip();
+      setTimeout(function() {
+        initiateRoundTrip();
+      }, 100);
     }
-    if(roundtrips.length % 10 == 0){
-      analyzeRoundTrips();
-    }
+    analyzeRoundTrips();
   });
   
   var self = {
     sync: function() {
-     initializeRoundTrip();
+     initiateRoundTrip();
     },
     getCurrentServerTime: function(){
-      analyzeRoundTrips();
-      return currentServerTime;
+      var timeOffset = fastestRoundTrip?  fastestRoundTrip.getTimeOffset() : 0;
+      return new Date().getTime() + fastestRoundTrip.getTimeOffset();
     }
   };
   
