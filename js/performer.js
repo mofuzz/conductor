@@ -433,13 +433,17 @@ var PopupMessage = function() {
   var ntp = NTPClient(socket);
   ntp.sync();
   
-  // var displayLatency = function() {
-  //   popupMessage.message("lowest latency to server in ms: " + ntp.getBestRoundtripLatency());
-  //   setTimeout(function() {
-  //     displayLatency();
-  //   }, 1000);
-  // }
-  // displayLatency();
+  var displayLatency = function() {
+    var LATENCY_MAX = 50;
+    var bestLatency = ntp.getBestRoundtripLatency();
+    if(bestLatency > LATENCY_MAX){
+      popupMessage.message("Waiting for a good network situation ("+LATENCY_MAX+" ms or less latency). Best yet: " + ntp.getBestRoundtripLatency());
+    }
+    setTimeout(function() {
+      displayLatency();
+    }, 1000);
+  }
+  displayLatency();
 
   // ========================================================
   // =             Physical Event Handlers                  =
