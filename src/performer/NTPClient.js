@@ -34,7 +34,7 @@ var NTPClient = function(socket) {
       fastestRoundTrip = roundtrips[0];
     }
     $.each(roundtrips, function(i, trip) {
-      if(trip.getCommunicationLatency < fastestRoundTrip.getCommunicationLatency){
+      if(trip.getCommunicationLatency() < fastestRoundTrip.getCommunicationLatency()){
         fastestRoundTrip = trip;
       }
     })
@@ -57,6 +57,9 @@ var NTPClient = function(socket) {
     getCurrentServerTime: function(){
       var timeOffset = fastestRoundTrip?  fastestRoundTrip.getTimeOffset() : 0;
       return new Date().getTime() + fastestRoundTrip.getTimeOffset();
+    },
+    getBestRoundtripLatency: function() {
+      return fastestRoundTrip?  fastestRoundTrip.getCommunicationLatency() : -1;
     }
   };
   

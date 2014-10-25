@@ -18,13 +18,6 @@ $(document).ready(function(){
       audioController[data.methodName](data.value);
     }
   });
-
-  // =============================================
-  // =                 NTP Syncing               =
-  // =============================================
-
-  var ntp = NTPClient(socket);
-  ntp.sync();
   
   // ================================
   // =          draw GUI             =
@@ -40,9 +33,22 @@ $(document).ready(function(){
     }
     audioController.setBaseScaleDegree(y);
     audioController.setArpeggLen(x + 1);
-    ntp.getCurrentServerTime();
   });
+  
+  // =============================================
+  // =                 NTP Syncing               =
+  // =============================================
 
+  var ntp = NTPClient(socket);
+  ntp.sync();
+  
+  var displayLatency = function() {
+    popupMessage.message("lowest latency to server in ms: " + ntp.getBestRoundtripLatency());
+    setTimeout(function() {
+      displayLatency();
+    }, 1000);
+  }
+  displayLatency();
 
   // ========================================================
   // =             Physical Event Handlers                  =

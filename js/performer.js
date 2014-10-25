@@ -314,7 +314,7 @@ var AudioController = function(popupMessage, ntpClient){
       fastestRoundTrip = roundtrips[0];
     }
     $.each(roundtrips, function(i, trip) {
-      if(trip.getCommunicationLatency < fastestRoundTrip.getCommunicationLatency){
+      if(trip.getCommunicationLatency() < fastestRoundTrip.getCommunicationLatency()){
         fastestRoundTrip = trip;
       }
     })
@@ -325,7 +325,7 @@ var AudioController = function(popupMessage, ntpClient){
     if(roundtrips.length < MAX_TRIPS){
       setTimeout(function() {
         initiateRoundTrip();
-      }, 100);
+      }, 500);
     }
     analyzeRoundTrips();
   });
@@ -337,6 +337,9 @@ var AudioController = function(popupMessage, ntpClient){
     getCurrentServerTime: function(){
       var timeOffset = fastestRoundTrip?  fastestRoundTrip.getTimeOffset() : 0;
       return new Date().getTime() + fastestRoundTrip.getTimeOffset();
+    },
+    getBestRoundtripLatency: function() {
+      return fastestRoundTrip?  fastestRoundTrip.getCommunicationLatency() : -1;
     }
   };
   
@@ -406,13 +409,6 @@ var PopupMessage = function() {
       audioController[data.methodName](data.value);
     }
   });
-
-  // =============================================
-  // =                 NTP Syncing               =
-  // =============================================
-
-  var ntp = NTPClient(socket);
-  ntp.sync();
   
   // ================================
   // =          draw GUI             =
@@ -428,9 +424,22 @@ var PopupMessage = function() {
     }
     audioController.setBaseScaleDegree(y);
     audioController.setArpeggLen(x + 1);
-    ntp.getCurrentServerTime();
   });
+  
+  // =============================================
+  // =                 NTP Syncing               =
+  // =============================================
 
+  var ntp = NTPClient(socket);
+  ntp.sync();
+  
+  var displayLatency = function() {
+    popupMessage.message("lowest latency to server in ms: " + ntp.getBestRoundtripLatency());
+    setTimeout(function() {
+      displayLatency();
+    }, 1000);
+  }
+  displayLatency();
 
   // ========================================================
   // =             Physical Event Handlers                  =
