@@ -298,7 +298,7 @@ var AudioController = function(popupMessage, ntpClient){
       }
     };
     
-    console.log("new RoundTrip. latency is: " + self.getCommunicationLatency() + "offset is: " + self.getTimeOffset());
+    // console.log("new RoundTrip. latency is: " + self.getCommunicationLatency() + "offset is: " + self.getTimeOffset());
     
     return self;
   }
@@ -438,6 +438,8 @@ var PopupMessage = function() {
     var bestLatency = ntp.getBestRoundtripLatency();
     if(bestLatency > LATENCY_MAX){
       popupMessage.message("Waiting for a good network situation ("+LATENCY_MAX+" ms or less latency). Best yet: " + ntp.getBestRoundtripLatency());
+    }else{
+      popupMessage.clearMessage();
     }
     setTimeout(function() {
       displayLatency();

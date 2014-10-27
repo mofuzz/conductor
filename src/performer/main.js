@@ -47,6 +47,8 @@ $(document).ready(function(){
     var bestLatency = ntp.getBestRoundtripLatency();
     if(bestLatency > LATENCY_MAX){
       popupMessage.message("Waiting for a good network situation ("+LATENCY_MAX+" ms or less latency). Best yet: " + ntp.getBestRoundtripLatency());
+    }else{
+      popupMessage.clearMessage();
     }
     setTimeout(function() {
       displayLatency();

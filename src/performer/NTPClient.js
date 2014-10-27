@@ -18,7 +18,7 @@ var NTPClient = function(socket) {
       }
     };
     
-    console.log("new RoundTrip. latency is: " + self.getCommunicationLatency() + "offset is: " + self.getTimeOffset());
+    // console.log("new RoundTrip. latency is: " + self.getCommunicationLatency() + "offset is: " + self.getTimeOffset());
     
     return self;
   }
