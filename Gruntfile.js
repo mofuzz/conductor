@@ -1,5 +1,9 @@
 //Grunt is just JavaScript running in node, after all...
+
+
 module.exports = function(grunt) {
+
+  grunt.loadNpmTasks('grunt-contrib-handlebars');
 
   // All upfront config goes in a massive nested object.
   grunt.initConfig({
@@ -8,6 +12,25 @@ module.exports = function(grunt) {
     // You can also set the value of a key as parsed JSON.
     // Allows us to reference properties we declared in package.json.
     pkg: grunt.file.readJSON('package.json'),
+    
+    
+    handlebars: {
+      
+      compile: {
+        options: {
+          processName: function(filePath) {
+              var split = filePath.split("/")
+              return split[ split.length -1 ];
+            },
+          namespace: "templates"
+        },
+        files: {
+          "temp/ConductorTemplates.js": ["src/templates/*"]
+        }
+      }
+    },
+    
+    
     // Grunt tasks are associated with specific properties.
     // these names generally match their npm package name.
     concat: {
@@ -15,12 +38,12 @@ module.exports = function(grunt) {
       options: {
         // Specifies string to be inserted between concatenated files.
         separator: ';',
-        banner: ";(function( window){ \n 'use strict';\n" ,
-        footer: "}( window ));"
+        banner: ";new function(){ \n 'use strict'; var ColorChoirApp = this;\n" ,
+        footer: "};"
       },
       // 'dist' is what is called a "target."
       // It's a way of specifying different sub-tasks or modes.
-      dist: {
+      performer: {
         // The files to concatenate:
         // Notice the wildcard, which is automatically expanded.
         src: ['src/performer/*.js'],
@@ -29,6 +52,18 @@ module.exports = function(grunt) {
         // which allows you to reference other properties.
         // This is equivalent to 'dist/main.js'.
         dest: '<%= distFolder %>/performer.js'
+        // You can reference any grunt config property you want.
+        // Ex: '<%= concat.options.separator %>' instead of ';'
+      },
+      conductor: {
+        // The files to concatenate:
+        // Notice the wildcard, which is automatically expanded.
+        src: ['libs/handlebars.runtime-v2.0.0.js', 'temp/ConductorTemplates.js', 'libs/jquery.knob.js','src/conductor/*.js'],
+        // The destination file:
+        // Notice the angle-bracketed ERB-like templating,
+        // which allows you to reference other properties.
+        // This is equivalent to 'dist/main.js'.
+        dest: '<%= distFolder %>/conductor.js'
         // You can reference any grunt config property you want.
         // Ex: '<%= concat.options.separator %>' instead of ';'
       }

@@ -1,0 +1,1 @@
+<div><div>{{name}}</div><div><input type="text" id="{{name}}" name="{{name}}" value="0"></input></input>

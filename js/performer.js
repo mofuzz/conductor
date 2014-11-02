@@ -1,5 +1,5 @@
-;(function( window){ 
- 'use strict';
+;new function(){ 
+ 'use strict'; var ColorChoirApp = this;
 var AudioController = function(popupMessage, ntpClient){
   var localRandSeed = Math.random();
   var context;
@@ -475,4 +475,4 @@ var PopupMessage = function() {
 
 });
 
-}( window ));
+};
