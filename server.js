@@ -9,8 +9,17 @@ var performerSockets = [];
 var motionEvents = [];
 var emitRate = 200;
 // keep current settings, resend periodically to protect against dropped messages
-var synthSettings = {keepAlive: {methodName: "keepAlive"}};
-var AUTO_MODE = false;
+var synthSettings = {
+  keepAlive: {methodName: "keepAlive"},
+  connectCounter: {
+    methodName: "connectCounter",
+    value: 0
+  },
+  maxEverConnected: {
+    methodName: "maxEverConnected",
+    value: 0
+  }
+};
 var SETTINGS_FILE_LOC = "persistance/settings.json";
 
 // ==============================
@@ -21,8 +30,23 @@ fs.readFile( SETTINGS_FILE_LOC, function (err, data) {
   if (err) {
     throw err; 
   }
-  synthSettings = JSON.parse(data);
+  var loadedSettings = JSON.parse(data);
+  for(var key in loadedSettings){
+    synthSettings[key] = loadedSettings[key];
+  }
+  synthSettings.connectCounter.value = 0;
 });
+
+
+var writeSynthSettings = function() {
+  fs.writeFile(SETTINGS_FILE_LOC, JSON.stringify(synthSettings), function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
+  });
+}
 
 function handler(req, res) {
   if (req.url === "/") {
@@ -48,28 +72,31 @@ function handler(req, res) {
 
 io.sockets.on('connection', function(socket) {
   console.log('connected on ' + socket.id);
-
-  if(AUTO_MODE){
-    (function() {
-      var scale = 1;
-      function setScale() {
-        scale++;
-
-        socket.broadcast.to('performers').emit('control',  {methodName: "setScale", value: scale});
-        setTimeout(setScale, 1000 * 5);
-      }
-      setScale();
-    })()
+  synthSettings.connectCounter.value++;
+  if (synthSettings.connectCounter.value > synthSettings.maxEverConnected.value){
+    synthSettings.maxEverConnected.value = synthSettings.connectCounter.value;
   }
+  writeSynthSettings();
+    
+  socket.on('disconnect', function() { 
+    console.log('disconnected on ' + socket.id);
+    if(synthSettings.connectCounter.value > 0){
+      synthSettings.connectCounter.value--;
+    }
+    writeSynthSettings();
+  });
   
   // continually broadcase all of the messages that have come in 
   // to make sure all the synths are in the same state
   function repeatBroadcastSettings() {
+    
+    socket.broadcast.to('performers').emit('control', data);
     for (var key in synthSettings) {
       if (synthSettings.hasOwnProperty(key)) {
         var data = synthSettings[key];
         socket.broadcast.to('performers').emit('control', data);
       }
+      
     }
     setTimeout(repeatBroadcastSettings, 1000);
   }
@@ -82,7 +109,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('ntp', function(data) {
-    console.log("ntp: " + data.timeStamp);
     
     socket.emit('ntp', {
       serverRecievedTime:  new Date().getTime(),
@@ -95,13 +121,7 @@ io.sockets.on('connection', function(socket) {
     socket.broadcast.to('performers').emit('control', data);
     synthSettings[data.methodName] = data;
     console.log(JSON.stringify(synthSettings));
-    fs.writeFile(SETTINGS_FILE_LOC, JSON.stringify(synthSettings), function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
-    });
+    writeSynthSettings();
   });
 
 });

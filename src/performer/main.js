@@ -16,6 +16,10 @@ $(document).ready(function(){
   socket.on('control', function(data){
     if(data && audioController && audioController[data.methodName]){
       audioController[data.methodName](data.value);
+    }else if(data && data.methodName === "connectCounter"){
+      $("#currentChoirCount").html(data.value)
+    }else if(data && data.methodName === "maxEverConnected"){
+        $("#maxChoirCount").html(data.value)
     }
   });
   

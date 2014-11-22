@@ -34,8 +34,8 @@ var GridGUI = function() {
       
   }
   
-  var squareWidth = $(document).width() / GRID_DIMENSIONS.x;
-  var squareHeight = $(document).height() / GRID_DIMENSIONS.y;
+  var squareWidth = $(window).width() / GRID_DIMENSIONS.x;
+  var squareHeight = $(window).height() / GRID_DIMENSIONS.y;
   
   var colors = [ "#cccccc", "#dddddd"];
  

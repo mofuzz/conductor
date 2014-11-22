@@ -1,18 +1,31 @@
 ;(function( window){ 
  'use strict';
 $(document).ready(function(){
+  var windowJQ = $(window);
   var about = $("#about");
   var margin = 100;
-  about.click(function() {
-    about.css({
-      left: margin + "px"
-    });
+  var isDisplayed = false;
+  var toggleBtn = about.find(".toggleBtn");
+  var getRightShiftForHide = function() {
+    return $(window).width() - toggleBtn.outerWidth();
+  }
+  about.find(".toggleBtn").click(function() {
+    var left = isDisplayed? getRightShiftForHide(): margin;
+    about.animate({
+      left: left + "px"
+    }, 100);
+    isDisplayed = !isDisplayed;
   })
-  var rightShift = $(document).width() - 100;
+  
   about.css({
-    left: rightShift + "px",
-    width: ($(document).width() - (margin * 2)) + "px"
+    left: getRightShiftForHide() + "px",
+    width: ($(window).width() - (margin * 2)) + "px",
   });
+  
+  about.find(".content").css({
+    height: ($(window).height() - (margin * 2)) + "px"
+  });
+  
 });;var AudioController = function(popupMessage, ntpClient){
   var localRandSeed = Math.random();
   var context;
@@ -240,8 +253,8 @@ $(document).ready(function(){
       
   }
   
-  var squareWidth = $(document).width() / GRID_DIMENSIONS.x;
-  var squareHeight = $(document).height() / GRID_DIMENSIONS.y;
+  var squareWidth = $(window).width() / GRID_DIMENSIONS.x;
+  var squareHeight = $(window).height() / GRID_DIMENSIONS.y;
   
   var colors = [ "#cccccc", "#dddddd"];
  
@@ -420,6 +433,10 @@ var PopupMessage = function() {
   socket.on('control', function(data){
     if(data && audioController && audioController[data.methodName]){
       audioController[data.methodName](data.value);
+    }else if(data && data.methodName === "connectCounter"){
+      $("#currentChoirCount").html(data.value)
+    }else if(data && data.methodName === "maxEverConnected"){
+        $("#maxChoirCount").html(data.value)
     }
   });
   

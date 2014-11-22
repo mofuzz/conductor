@@ -11,6 +11,7 @@ body{
 	color: #ffffff;
 }
 
+
 .button{
 	cursor: pointer;
 	padding: 10px;
@@ -47,7 +48,7 @@ body{
 
 #about{
 	z-index: 2000;
-	font-size: 100px;
+	font-size: 60px;
 	position: absolute;
 	color: #000000;
 	
@@ -56,13 +57,36 @@ body{
 }
 
 #about .toggleBtn{
-	position: relative;
-	top: 0px;
-	left: 0px;
+	display: inline;
+	float: left;
+	cursor: pointer;
+	padding: 30px;
+	width: auto;
 }
 
 #about div{
 	background-color: #ffffff;
-	
 }
+#about .content{
+	float: right;
+	display: inline;
+	width: 90%;
+	overflow: scroll;
+	color: #999999;
+}
+
+#about .content a{
+	color: #999999;
+	text-decoration: none;
+}
+
+#about .content a:hover{
+	text-decoration: underline;
+}
+
+#about .content .padder{
+	padding: 20px;
+}
+
+
 
