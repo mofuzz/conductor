@@ -1,6 +1,19 @@
 ;(function( window){ 
  'use strict';
-var AudioController = function(popupMessage, ntpClient){
+$(document).ready(function(){
+  var about = $("#about");
+  var margin = 100;
+  about.click(function() {
+    about.css({
+      left: margin + "px"
+    });
+  })
+  var rightShift = $(document).width() - 100;
+  about.css({
+    left: rightShift + "px",
+    width: ($(document).width() - (margin * 2)) + "px"
+  });
+});;var AudioController = function(popupMessage, ntpClient){
   var localRandSeed = Math.random();
   var context;
   var osc;
