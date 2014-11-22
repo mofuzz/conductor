@@ -52,7 +52,17 @@ body{
 	color: #000000;
 	
 	left: -200px;
-	top: 20px;
+	top: 20px
+}
+
+#about .toggleBtn{
+	position: relative;
+	top: 0px;
+	left: 0px;
+}
+
+#about div{
 	background-color: #ffffff;
+	
 }
 
