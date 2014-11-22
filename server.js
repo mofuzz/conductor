@@ -28,13 +28,14 @@ var SETTINGS_FILE_LOC = "persistance/settings.json";
 
 fs.readFile( SETTINGS_FILE_LOC, function (err, data) {
   if (err) {
-    throw err; 
+    console.log("No settings file");
+  }else{
+    var loadedSettings = JSON.parse(data);
+    for(var key in loadedSettings){
+      synthSettings[key] = loadedSettings[key];
+    }
+    synthSettings.connectCounter.value = 0;
   }
-  var loadedSettings = JSON.parse(data);
-  for(var key in loadedSettings){
-    synthSettings[key] = loadedSettings[key];
-  }
-  synthSettings.connectCounter.value = 0;
 });
 
 
