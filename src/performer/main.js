@@ -1,6 +1,7 @@
 $(document).ready(function(){
 
-    var audioController = null;
+  var audioController = null;
+  var socketMessageHandlers = [];  
 
   // ============================================
   // =            Socket communication          =
@@ -14,13 +15,23 @@ $(document).ready(function(){
   });
 
   socket.on('control', function(data){
-    if(data && audioController && audioController[data.methodName]){
-      audioController[data.methodName](data.value);
-    }else if(data && data.methodName === "connectCounter"){
-      $("#currentChoirCount").html(data.value)
-    }else if(data && data.methodName === "maxEverConnected"){
-        $("#maxChoirCount").html(data.value)
+    if(data && typeof data != undefined){
+      for(var i = 0; i < socketMessageHandlers.length; i++){
+        var handler = socketMessageHandlers[i];
+        if(handler[data.methodName]){
+          handler[data.methodName](data.value);
+          break;
+        };
+      }      
     }
+
+    // if(data && audioController && audioController[data.methodName]){
+    //   audioController[data.methodName](data.value);
+    // }else if(data && data.methodName === "connectCounter"){
+    //   $("#currentChoirCount").html(data.value)
+    // }else if(data && data.methodName === "maxEverConnected"){
+    //     $("#maxChoirCount").html(data.value)
+    // }
   });
   
   // ================================
@@ -37,7 +48,10 @@ $(document).ready(function(){
     }
     audioController.setBaseScaleDegree(y);
     audioController.setArpeggLen(x + 1);
+    socketMessageHandlers.push(audioController);
   });
+  
+  socketMessageHandlers.push(AboutScreen());
   
   // =============================================
   // =                 NTP Syncing               =

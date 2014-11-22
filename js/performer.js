@@ -1,32 +1,49 @@
 ;(function( window){ 
  'use strict';
-$(document).ready(function(){
-  var windowJQ = $(window);
-  var about = $("#about");
-  var margin = 100;
-  var isDisplayed = false;
-  var toggleBtn = about.find(".toggleBtn");
-  var getRightShiftForHide = function() {
-    return $(window).width() - toggleBtn.outerWidth();
-  }
-  about.find(".toggleBtn").click(function() {
-    var left = isDisplayed? getRightShiftForHide(): margin;
-    about.animate({
-      left: left + "px"
-    }, 100);
-    isDisplayed = !isDisplayed;
-  })
+var AboutScreen = function() {
   
-  about.css({
-    left: getRightShiftForHide() + "px",
-    width: ($(window).width() - (margin * 2)) + "px",
+  $(document).ready(function(){
+    var windowJQ = $(window);
+    var about = $("#about");
+    var margin = 100;
+    var isDisplayed = false;
+    var toggleBtn = about.find(".toggleBtn");
+    var getRightShiftForHide = function() {
+      return $(window).width() - toggleBtn.outerWidth();
+    }
+    about.find(".toggleBtn").click(function() {
+      var left = isDisplayed? getRightShiftForHide(): margin;
+      about.animate({
+        left: left + "px"
+      }, 100);
+      isDisplayed = !isDisplayed;
+    })
+
+    about.css({
+      left: getRightShiftForHide() + "px",
+      width: ($(window).width() - (margin * 2)) + "px",
+    });
+
+    about.find(".content").css({
+      height: ($(window).height() - (margin * 2)) + "px"
+    });
+
   });
   
-  about.find(".content").css({
-    height: ($(window).height() - (margin * 2)) + "px"
-  });
+  return {
+    connectCounter: function(value) {
+      $("#currentChoirCount").html(value);
+    },
+    maxEverConnected: function(value) {
+      $("#maxChoirCount").html(value);
+    }
+    
+
+  }  
   
-});;var AudioController = function(popupMessage, ntpClient){
+}
+
+;var AudioController = function(popupMessage, ntpClient){
   var localRandSeed = Math.random();
   var context;
   var osc;
@@ -417,7 +434,8 @@ var PopupMessage = function() {
 }
 ;$(document).ready(function(){
 
-    var audioController = null;
+  var audioController = null;
+  var socketMessageHandlers = [];  
 
   // ============================================
   // =            Socket communication          =
@@ -431,13 +449,23 @@ var PopupMessage = function() {
   });
 
   socket.on('control', function(data){
-    if(data && audioController && audioController[data.methodName]){
-      audioController[data.methodName](data.value);
-    }else if(data && data.methodName === "connectCounter"){
-      $("#currentChoirCount").html(data.value)
-    }else if(data && data.methodName === "maxEverConnected"){
-        $("#maxChoirCount").html(data.value)
+    if(data && typeof data != undefined){
+      for(var i = 0; i < socketMessageHandlers.length; i++){
+        var handler = socketMessageHandlers[i];
+        if(handler[data.methodName]){
+          handler[data.methodName](data.value);
+          break;
+        };
+      }      
     }
+
+    // if(data && audioController && audioController[data.methodName]){
+    //   audioController[data.methodName](data.value);
+    // }else if(data && data.methodName === "connectCounter"){
+    //   $("#currentChoirCount").html(data.value)
+    // }else if(data && data.methodName === "maxEverConnected"){
+    //     $("#maxChoirCount").html(data.value)
+    // }
   });
   
   // ================================
@@ -454,7 +482,10 @@ var PopupMessage = function() {
     }
     audioController.setBaseScaleDegree(y);
     audioController.setArpeggLen(x + 1);
+    socketMessageHandlers.push(audioController);
   });
+  
+  socketMessageHandlers.push(AboutScreen());
   
   // =============================================
   // =                 NTP Syncing               =
