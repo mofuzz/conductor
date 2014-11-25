@@ -62,6 +62,11 @@ body{
 	cursor: pointer;
 	padding: 30px;
 	width: auto;
+	color: #999999;
+}
+
+#about .toggleBtn .widthHolder{
+	width: 18px;
 }
 
 #about div{
@@ -77,7 +82,8 @@ body{
 
 #about .content a{
 	color: #999999;
-	text-decoration: none;
+	text-decoration: underline;
+	font-weight: bold;
 }
 
 #about .content a:hover{

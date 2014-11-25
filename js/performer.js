@@ -16,6 +16,7 @@ var AboutScreen = function() {
       about.animate({
         left: left + "px"
       }, 100);
+      about.find(".toggleBtn .widthHolder").html(isDisplayed ? "?" : "x");
       isDisplayed = !isDisplayed;
     })
 
@@ -25,7 +26,8 @@ var AboutScreen = function() {
     });
 
     about.find(".content").css({
-      height: ($(window).height() - (margin * 2)) + "px"
+      height: ($(window).innerHeight() - (margin * 2)) + "px",
+      width: (about.width() - about.find(".toggleBtn").outerWidth() - 5) + "px"
     });
 
   });
@@ -237,6 +239,7 @@ var AboutScreen = function() {
 };var GridGUI = function() {
   var GRID_DIMENSIONS = {x: 10, y:10}
   var touchResponders = [];
+  var divs = [];
 
   function HSVtoRGB(h, s, v) {
       var r, g, b, i, f, p, q, t;
@@ -273,9 +276,10 @@ var AboutScreen = function() {
   var squareWidth = $(window).width() / GRID_DIMENSIONS.x;
   var squareHeight = $(window).height() / GRID_DIMENSIONS.y;
   
-  var colors = [ "#cccccc", "#dddddd"];
  
   for (var x=0; x < GRID_DIMENSIONS.x; x++) {
+    var column = [];
+    divs.push(column);
     for (var y=0; y < GRID_DIMENSIONS.y; y++) {
       (function() {
         var localX = x, localY = y;
@@ -310,6 +314,7 @@ var AboutScreen = function() {
           })
         });
         $("body").append(div);
+        column.push(div);
       })()
     };
   };
@@ -454,7 +459,6 @@ var PopupMessage = function() {
         var handler = socketMessageHandlers[i];
         if(handler[data.methodName]){
           handler[data.methodName](data.value);
-          break;
         };
       }      
     }

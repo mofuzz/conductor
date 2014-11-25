@@ -20,7 +20,6 @@ $(document).ready(function(){
         var handler = socketMessageHandlers[i];
         if(handler[data.methodName]){
           handler[data.methodName](data.value);
-          break;
         };
       }      
     }
